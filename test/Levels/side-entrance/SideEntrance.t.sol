@@ -5,6 +5,7 @@ import {Utilities} from "../../utils/Utilities.sol";
 import "forge-std/Test.sol";
 
 import {SideEntranceLenderPool} from "../../../src/Contracts/side-entrance/SideEntranceLenderPool.sol";
+import {FlashLoanEtherReceiverMock} from "../../../src/Contracts/side-entrance/SideEntranceLenderPool.sol";
 
 contract SideEntrance is Test {
     uint256 internal constant ETHER_IN_POOL = 1_000e18;
@@ -36,6 +37,9 @@ contract SideEntrance is Test {
         /**
          * EXPLOIT START *
          */
+        vm.startPrank(attacker);
+        FlashLoanEtherReceiverMock mock = new FlashLoanEtherReceiverMock(address(sideEntranceLenderPool));
+        mock.attack();
 
         /**
          * EXPLOIT END *
